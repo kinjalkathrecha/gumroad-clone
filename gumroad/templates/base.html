@@ -1,8 +1,9 @@
-{% load static i18n %}
+{% load static tailwind_tags %}
+{% load i18n %}
 
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE }}" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -12,116 +13,96 @@
       {% endblock title %}
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Behold My Awesome Project!" />
+    <meta name="description"
+          content="Gumroad Clone built with Django and Tailwind" />
     <meta name="author" content="kinjal" />
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
     {% block css %}
-      <!-- Latest compiled and minified Bootstrap CSS -->
-      <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
-            integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer" />
-      <!-- Your stuff: Third-party CSS libraries go here -->
-      <!-- This file stores project-specific CSS -->
+      {% tailwind_css %}
       <link href="{% static 'css/project.css' %}" rel="stylesheet" />
     {% endblock css %}
-    <!-- Le javascript
-    ================================================== -->
-    {# Placed at the top of the document so pages load faster with defer #}
     {% block javascript %}
-      <!-- Bootstrap JS -->
-      <script defer
-              src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"
-              integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g=="
-              crossorigin="anonymous"
-              referrerpolicy="no-referrer"></script>
-      <!-- Your stuff: Third-party javascript libraries go here -->
-      <!-- place project specific Javascript in this file -->
+      {# Defer project-specific JS #}
       <script defer src="{% static 'js/project.js' %}"></script>
     {% endblock javascript %}
   </head>
-  <body class="{% block bodyclass %}{% endblock bodyclass %}">
+  <body class="bg-white text-black antialiased {% block bodyclass %}{% endblock bodyclass %}">
     {% block body %}
-      <div class="mb-1">
-        <nav class="navbar navbar-expand-md navbar-light bg-light">
-          <div class="container-fluid">
-            <button class="navbar-toggler navbar-toggler-right"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <a class="navbar-brand" href="{% url 'home' %}">gumroad</a>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-              <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                  <a class="nav-link" href="{% url 'home' %}">Home <span class="visually-hidden">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'about' %}">About</a>
-                </li>
-                {% if request.user.is_authenticated %}
-                  <li class="nav-item">
-                    <a class="nav-link"
-                       href="{% url 'users:detail' request.user.username %}">{% translate "My Profile" %}</a>
-                  </li>
-                  <li class="nav-item">
-                    {# URL provided by django-allauth/account/urls.py #}
-                    <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
-                  </li>
-                {% else %}
-                  {% if ACCOUNT_ALLOW_REGISTRATION %}
-                    <li class="nav-item">
-                      {# URL provided by django-allauth/account/urls.py #}
-                      <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+      <nav class="navbar bg-white border-b-2 border-black px-4 md:px-8 sticky top-0 z-50">
+        <div class="flex-1">
+          <a class="text-2xl font-black italic tracking-tighter hover:opacity-80 transition-opacity"
+             href="{% url 'home' %}">gumroad</a>
+        </div>
+        <div class="flex-none">
+          <ul class="menu menu-horizontal px-1 font-bold gap-2">
+            <li class="hidden sm:block">
+              <a href="{% url 'home' %}">Home</a>
+            </li>
+            <li class="hidden sm:block">
+              <a href="{% url 'about' %}">About</a>
+            </li>
+            {% if request.user.is_authenticated %}
+              <li>
+                <div class="dropdown dropdown-end">
+                  <label tabindex="0"
+                         class="btn btn-ghost btn-circle avatar border-2 border-black">
+                    <div class="w-10 rounded-full">
+                      <img src="https://ui-avatars.com/api/?name={{ request.user.username }}"
+                           alt="profile" />
+                    </div>
+                  </label>
+                  <ul tabindex="0"
+                      class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 border-2 border-black w-52 rounded-none">
+                    <li>
+                      <a href="{% url 'users:detail' request.user.username %}">{% translate "My Profile" %}</a>
                     </li>
-                  {% endif %}
-                  <li class="nav-item">
-                    {# URL provided by django-allauth/account/urls.py #}
-                    <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
-                  </li>
-                {% endif %}
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </div>
-      <div class="container">
+                    <li>
+                      <a href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            {% else %}
+              <li>
+                <a href="{% url 'account_login' %}" class="hover:underline">{% translate "Sign In" %}</a>
+              </li>
+              {% if ACCOUNT_ALLOW_REGISTRATION %}
+                <li>
+                  <a href="{% url 'account_signup' %}"
+                     class="btn btn-primary btn-sm rounded-none border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                    {% translate "Sign Up" %}
+                  </a>
+                </li>
+              {% endif %}
+            {% endif %}
+          </ul>
+        </div>
+      </nav>
+      <div class="max-w-7xl mx-auto px-4 mt-4">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-              {{ message }}
-              <button type="button"
-                      class="btn-close"
-                      data-bs-dismiss="alert"
-                      aria-label="Close"></button>
+            <div class="alert rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 {% if message.tags == 'error' %}bg-error{% else %}bg-info{% endif %}">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="交付13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+              </svg>
+              <span class="font-bold">{{ message }}</span>
             </div>
           {% endfor %}
         {% endif %}
-        {% block main %}
-          {% block content %}
-            <p>Use this document as a way to quick start any new project.</p>
-          {% endblock content %}
-        {% endblock main %}
       </div>
+      <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}
+          <p>This is where your magic happens.</p>
+        {% endblock content %}
+      </main>
     {% endblock body %}
-    <!-- /container -->
     {% block modal %}
     {% endblock modal %}
     {% block inline_javascript %}
-      {% comment %}
-    Script tags with only code, no src (defer by default). To run
-    with a "defer" so that you run inline code:
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        /* Run whatever you want */
-      });
-    </script>
-      {% endcomment %}
     {% endblock inline_javascript %}
   </body>
 </html>
