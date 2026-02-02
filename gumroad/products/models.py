@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class Product(models.Model):
@@ -15,3 +16,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            "products:product-detail",
+            kwargs={
+                "slug": self.slug,
+            },
+        )
+
+    def price_display(self):
+        return f"{self.price / 100:.2f}"

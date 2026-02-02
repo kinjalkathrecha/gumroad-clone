@@ -36,10 +36,7 @@
         <div class="flex-none">
           <ul class="menu menu-horizontal px-1 font-bold gap-2">
             <li class="hidden sm:block">
-              <a href="{% url 'home' %}">Home</a>
-            </li>
-            <li class="hidden sm:block">
-              <a href="{% url 'about' %}">About</a>
+              <a href="{% url 'discover' %}">Discover</a>
             </li>
             {% if request.user.is_authenticated %}
               <li>
@@ -86,8 +83,7 @@
                    fill="none"
                    viewBox="0 0 24 24"
                    class="stroke-current shrink-0 w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="交付13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span class="font-bold">{{ message }}</span>
             </div>

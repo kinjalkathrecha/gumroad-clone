@@ -3,7 +3,6 @@ from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from products.models import Product
 
 
 class User(AbstractUser):
@@ -30,7 +29,7 @@ class User(AbstractUser):
 
 class UserLibrary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="library")
-    products = models.ManyToManyField(Product, blank=True)
+    products = models.ManyToManyField("products.Product", blank=True)
 
     class Meta:
         verbose_name_plural = "UserLibraries"
