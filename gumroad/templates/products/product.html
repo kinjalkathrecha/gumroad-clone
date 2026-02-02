@@ -4,14 +4,20 @@
   <section class="text-gray-600 body-font">
     <div class="container px-5 py-24 mx-auto">
       <div class="flex flex-wrap -m-4">
-        <div class="block relative h-48 rounded overflow-hidden">
+        <div class="w-full lg:w-1/2 block relative h-64 rounded overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <img alt="{{ product.name }}"
                class="object-cover object-center w-full h-full block"
-               src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/420x260{% endif %}" />
+               src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/600x400{% endif %}" />
         </div>
-        <div class="mt-4">
-          <h2 class="text-gray-900 title-font text-lg font-medium">{{ product.name }}</h2>
-          <p class="mt-1">${{ product.price_display }}</p>
+        <div class="w-full lg:w-1/2 lg:pl-10 lg:py-6 mt-6 lg:mt-0">
+          <h2 class="text-gray-900 title-font text-3xl font-black italic tracking-tighter mb-2">{{ product.name }}</h2>
+          <p class="leading-relaxed mb-4 text-xl font-bold text-black">${{ product.price_display }}</p>
+          <div class="flex flex-col sm:flex-row gap-4 mt-6">
+            <a href="{{ product.get_update_url }}"
+               class="text-center bg-yellow-400 border-2 border-black px-6 py-2 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+              Edit Product
+            </a>
+          </div>
         </div>
       </div>
     </div>

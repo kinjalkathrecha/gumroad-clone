@@ -30,5 +30,21 @@ class Product(models.Model):
             },
         )
 
+    def get_update_url(self):
+        return reverse(
+            "products:product-update",
+            kwargs={
+                "slug": self.slug,
+            },
+        )
+
+    def get_delete_url(self):
+        return reverse(
+            "products:product-delete",
+            kwargs={
+                "slug": self.slug,
+            },
+        )
+
     def price_display(self):
         return f"{self.price / 100:.2f}"
