@@ -54,6 +54,9 @@
                       <a href="{% url 'users:detail' request.user.username %}">{% translate "My Profile" %}</a>
                     </li>
                     <li>
+                      <a href="{% url 'user-products' %}">{% translate "Products" %}</a>
+                    </li>
+                    <li>
                       <a href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
                     </li>
                   </ul>
