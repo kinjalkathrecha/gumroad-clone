@@ -8,7 +8,7 @@ from .models import Product
 
 class ProductListView(generic.ListView):
     template_name = "discover.html"
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(active=True)
 
 
 class ProductDetailView(generic.DetailView):

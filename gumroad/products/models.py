@@ -16,7 +16,7 @@ class Product(models.Model):
     # content
     content_url = models.URLField(blank=True)
     content_file = models.FileField(blank=True, null=True)
-
+    active = models.BooleanField(default=False)
     price = models.PositiveIntegerField(default=1)  # cents
 
     def __str__(self):

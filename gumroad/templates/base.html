@@ -20,56 +20,79 @@
     {% block css %}
       {% tailwind_css %}
       <link href="{% static 'css/project.css' %}" rel="stylesheet" />
+      <style>
+        /* Neobrutalist Custom Scrollbar */
+        ::-webkit-scrollbar {
+          width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: white;
+          border-left: 4px solid black;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: black;
+          border: 2px solid white;
+        }
+      </style>
     {% endblock css %}
     {% block javascript %}
-      {# Defer project-specific JS #}
       <script defer src="{% static 'js/project.js' %}"></script>
     {% endblock javascript %}
   </head>
-  <body class="bg-white text-black antialiased {% block bodyclass %}{% endblock bodyclass %}">
+  <body class="bg-[#f4f4f4] text-black antialiased {% block bodyclass %}{% endblock bodyclass %}">
     {% block body %}
-      <nav class="navbar bg-white border-b-2 border-black px-4 md:px-8 sticky top-0 z-50">
+      <nav class="navbar bg-white border-b-4 border-black px-4 md:px-8 sticky top-0 z-50 py-4">
         <div class="flex-1">
-          <a class="text-2xl font-black italic tracking-tighter hover:opacity-80 transition-opacity"
+          <a class="text-4xl font-black italic tracking-tighter hover:text-blue-500 transition-colors uppercase"
              href="{% url 'home' %}">gumroad</a>
         </div>
         <div class="flex-none">
-          <ul class="menu menu-horizontal px-1 font-bold gap-2">
+          <ul class="menu menu-horizontal px-1 font-black uppercase text-sm gap-4 items-center">
             <li class="hidden sm:block">
-              <a href="{% url 'discover' %}">Discover</a>
+              <a href="{% url 'discover' %}"
+                 class="hover:underline decoration-4 underline-offset-4">Discover</a>
             </li>
             {% if request.user.is_authenticated %}
               <li>
                 <div class="dropdown dropdown-end">
                   <label tabindex="0"
-                         class="btn btn-ghost btn-circle avatar border-2 border-black">
-                    <div class="w-10 rounded-full">
-                      <img src="https://ui-avatars.com/api/?name={{ request.user.username }}"
+                         class="btn btn-ghost p-0 h-auto hover:bg-transparent avatar">
+                    <div class="w-12 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=FF90E8&color=000"
                            alt="profile" />
                     </div>
                   </label>
                   <ul tabindex="0"
-                      class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 border-2 border-black w-52 rounded-none">
-                    <li>
-                      <a href="{% url 'users:detail' request.user.username %}">{% translate "My Profile" %}</a>
+                      class="menu menu-sm dropdown-content mt-4 z-[1] p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white border-4 border-black w-60 rounded-none">
+                    <li class="border-b-2 border-black p-2 bg-yellow-300 font-black italic">
+                      <span>Hi, {{ request.user.username }}!</span>
                     </li>
                     <li>
-                      <a href="{% url 'user-products' %}">{% translate "Products" %}</a>
+                      <a href="{% url 'users:detail' request.user.username %}"
+                         class="p-4 hover:bg-pink-200 rounded-none font-bold">{% translate "My Profile" %}</a>
                     </li>
                     <li>
-                      <a href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+                      <a href="{% url 'user-products' %}"
+                         class="p-4 hover:bg-pink-200 rounded-none font-bold">{% translate "Manage Products" %}</a>
+                    </li>
+                    <li>
+                      <a href="{% url 'account_logout' %}"
+                         class="p-4 hover:bg-red-400 rounded-none font-bold">{% translate "Sign Out" %}</a>
                     </li>
                   </ul>
                 </div>
               </li>
             {% else %}
               <li>
-                <a href="{% url 'account_login' %}" class="hover:underline">{% translate "Sign In" %}</a>
+                <a href="{% url 'account_login' %}"
+                   class="hover:underline font-black decoration-4 underline-offset-4">{% translate "Sign In" %}</a>
               </li>
               {% if ACCOUNT_ALLOW_REGISTRATION %}
                 <li>
                   <a href="{% url 'account_signup' %}"
-                     class="btn btn-primary btn-sm rounded-none border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                     class="bg-[#FF90E8] px-6 py-2 border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all">
                     {% translate "Sign Up" %}
                   </a>
                 </li>
@@ -78,24 +101,26 @@
           </ul>
         </div>
       </nav>
-      <div class="max-w-7xl mx-auto px-4 mt-4">
+      <div class="max-w-7xl mx-auto px-4 mt-6">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 {% if message.tags == 'error' %}bg-error{% else %}bg-info{% endif %}">
+            <div class="alert rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6 {% if message.tags == 'error' %}bg-red-400{% else %}bg-cyan-300{% endif %}">
               <svg xmlns="http://www.w3.org/2000/svg"
                    fill="none"
                    viewBox="0 0 24 24"
-                   class="stroke-current shrink-0 w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   class="stroke-black shrink-0 w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span class="font-bold">{{ message }}</span>
+              <span class="font-black text-lg">{{ message }}</span>
             </div>
           {% endfor %}
         {% endif %}
       </div>
-      <main class="max-w-7xl mx-auto px-4 py-8">
+      <main class="max-w-7xl mx-auto px-4 py-12">
         {% block content %}
-          <p>This is where your magic happens.</p>
+          <div class="border-4 border-dashed border-black p-20 text-center">
+            <p class="text-2xl font-black italic uppercase">This is where your magic happens.</p>
+          </div>
         {% endblock content %}
       </main>
     {% endblock body %}

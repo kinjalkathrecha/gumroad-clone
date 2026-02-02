@@ -4,21 +4,34 @@
   <section class="text-gray-600 body-font">
     <div class="container px-5 py-24 mx-auto">
       <a href="{% url 'product-create' %}"
-         class="bg-gray-500 px-3 py-2 text-white rounded-md">Create a product</a>
+         class="bg-black px-6 py-2 text-white font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all inline-block mb-8">
+        Create a product
+      </a>
       <div class="mt-5 flex flex-wrap -m-4">
         {% for product in object_list %}
           <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
-            <a href="{{ product.get_absolute_url }}"
-               class="block relative h-48 rounded overflow-hidden">
-              <img alt="{{ product.name }}"
-                   class="object-cover object-center w-full h-full block"
-                   src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/420x260{% endif %}" />
-            </a>
-            <div class="mt-4">
-              <a href="{{ product.get_absolute_url }}">
-                <h2 class="text-gray-900 title-font text-lg font-medium">{{ product.name }}</h2>
-                <p class="mt-1">${{ product.price_display }}</p>
+            <div class="relative border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-white">
+              {% if product.active %}
+                <div class="absolute top-0 right-0 z-10 bg-green-400 border-l-2 border-b-2 border-black px-3 py-1 text-xs font-black uppercase tracking-tighter">
+                  Active
+                </div>
+              {% else %}
+                <div class="absolute top-0 right-0 z-10 bg-gray-400 border-l-2 border-b-2 border-black px-3 py-1 text-xs font-black uppercase tracking-tighter">
+                  Draft
+                </div>
+              {% endif %}
+              <a href="{{ product.get_absolute_url }}"
+                 class="block relative h-48 overflow-hidden {% if not product.active %}opacity-60 italic{% endif %}">
+                <img alt="{{ product.name }}"
+                     class="object-cover object-center w-full h-full block"
+                     src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/420x260{% endif %}" />
               </a>
+              <div class="p-4 border-t-2 border-black">
+                <a href="{{ product.get_absolute_url }}">
+                  <h2 class="text-gray-900 title-font text-lg font-black uppercase tracking-tight">{{ product.name }}</h2>
+                  <p class="mt-1 font-bold text-black">${{ product.price_display }}</p>
+                </a>
+              </div>
             </div>
           </div>
         {% endfor %}
