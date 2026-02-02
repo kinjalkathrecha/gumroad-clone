@@ -322,3 +322,8 @@ SPECTACULAR_SETTINGS = {
 TAILWIND_APP_NAME = "theme"
 
 NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+
+# stripe
+
+STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY", default="your-default-pk")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="your-default-sk")

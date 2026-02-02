@@ -1,23 +1,45 @@
 {% extends "base.html" %}
 
+{% block javascript %}
+  {{ block.super }}
+  <script src="https://js.stripe.com/v3/"></script>
+{% endblock javascript %}
 {% block content %}
   <section class="text-gray-600 body-font">
     <div class="container px-5 py-24 mx-auto">
       <div class="flex flex-wrap -m-4">
-        <div class="w-full lg:w-1/2 block relative h-64 rounded overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div class="w-full lg:w-1/2 block relative h-96 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-white">
           <img alt="{{ product.name }}"
                class="object-cover object-center w-full h-full block"
                src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/600x400{% endif %}" />
         </div>
-        <div class="w-full lg:w-1/2 lg:pl-10 lg:py-6 mt-6 lg:mt-0">
-          <h2 class="text-gray-900 title-font text-3xl font-black italic tracking-tighter mb-2">{{ product.name }}</h2>
-          <p class="leading-relaxed mb-4 text-xl font-bold text-black">${{ product.price_display }}</p>
-          <div class="flex flex-col sm:flex-row gap-4 mt-6">
-            <a href="{{ product.get_update_url }}"
-               class="text-center bg-yellow-400 border-2 border-black px-6 py-2 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-              Edit Product
-            </a>
+        <div class="w-full lg:w-1/2 lg:pl-10 lg:py-6 mt-6 lg:mt-0 flex flex-col">
+          <h1 class="text-black text-4xl title-font font-black italic tracking-tighter mb-2 uppercase">{{ product.name }}</h1>
+          <p class="leading-relaxed mb-6 text-2xl font-bold text-gray-900">${{ product.price_display }}</p>
+          <div class="space-y-4">
+            <form action="{% url 'create-checkout-session' product.slug %}"
+                  method="post">
+              {% csrf_token %}
+              <button type="submit"
+                      class="w-full bg-[#FF90E8] text-black border-4 border-black py-4 font-black text-xl uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                checkout
+              </button>
+            </form>
+            {% if request.user == product.user %}
+              <div class="flex gap-4 pt-4 border-t-2 border-black border-dashed mt-4">
+                <a href="{{ product.get_update_url }}"
+                   class="flex-1 text-center bg-yellow-400 border-2 border-black px-6 py-2 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                  Edit Product
+                </a>
+              </div>
+            {% endif %}
           </div>
+          <p class="mt-6 text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+            Secure Checkout via Stripe
+          </p>
         </div>
       </div>
     </div>

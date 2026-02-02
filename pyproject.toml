@@ -184,5 +184,6 @@ dependencies = [
     "psycopg[binary]==3.3.2",
     "python-slugify==8.0.4",
     "redis==7.1.0",
+    "stripe>=14.3.0",
     "whitenoise==6.11.0",
 ]

@@ -9,8 +9,10 @@ from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
 
+from gumroad.products.views import CreateCheckoutSessionView
 from gumroad.products.views import ProductCreateView
 from gumroad.products.views import ProductListView
+from gumroad.products.views import SuccessView
 from gumroad.products.views import UserProductListView
 
 urlpatterns = [
@@ -19,6 +21,12 @@ urlpatterns = [
     path("products/", UserProductListView.as_view(), name="user-products"),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("p/", include("gumroad.products.urls", namespace="products")),
+    path(
+        "create-checkout-session/<slug>/",
+        CreateCheckoutSessionView.as_view(),
+        name="create-checkout-session",
+    ),
+    path("success/", SuccessView.as_view(), name="success"),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
