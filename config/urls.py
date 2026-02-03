@@ -14,6 +14,7 @@ from gumroad.products.views import ProductCreateView
 from gumroad.products.views import ProductListView
 from gumroad.products.views import SuccessView
 from gumroad.products.views import UserProductListView
+from gumroad.products.views import stripe_webhook
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -27,6 +28,7 @@ urlpatterns = [
         name="create-checkout-session",
     ),
     path("success/", SuccessView.as_view(), name="success"),
+    path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management

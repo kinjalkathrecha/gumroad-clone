@@ -13,8 +13,15 @@ SECRET_KEY = env(
     default="k4GTuleX99kPUXt9diSKo0ReNUE4OefyYIXK4DQTWNr7mGIZhbNzGP1y18KRzfvm",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]  # noqa: S104
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "nonacquisitive-celena-unreconnoitred.ngrok-free.dev",
+    ".ngrok-free.dev",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://nonacquisitive-celena-unreconnoitred.ngrok-free.dev",
+]
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
