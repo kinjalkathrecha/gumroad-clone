@@ -4,6 +4,7 @@ from django.db.models import CharField
 from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from gumroad.products.models import Product
 
 
 class User(AbstractUser):
@@ -17,7 +18,7 @@ class User(AbstractUser):
     name = CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
-    stripe_customer_id = models.CharField(max_length=100, blank=True, default="")
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.
@@ -31,7 +32,7 @@ class User(AbstractUser):
 
 class UserLibrary(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    products = models.ManyToManyField("products.Product", blank=True)
+    products = models.ManyToManyField(Product, blank=True)
 
     class Meta:
         verbose_name_plural = "UserLibraries"
@@ -41,8 +42,23 @@ class UserLibrary(models.Model):
 
 
 def post_save_user_receiver(sender, instance, created, **kwargs):
+    # This line ensures 'library' exists whether it's a NEW user or an UPDATE
+    library, _ = UserLibrary.objects.get_or_create(user=instance)
+
+    # Only run the fulfillment logic for brand-new accounts
     if created:
-        UserLibrary.objects.create(user=instance)
+        from gumroad.products.models import (
+            PurchasedProduct,
+        )  # Local import to avoid circularity
+
+        # Find any products bought as a guest with this email
+        purchases = PurchasedProduct.objects.filter(email__iexact=instance.email)
+
+        for purchase in purchases:
+            library.products.add(purchase.product)
+            print(
+                f"Linked legacy purchase {purchase.product.name} to new user {instance.email}"
+            )
 
 
 post_save.connect(post_save_user_receiver, sender=User)

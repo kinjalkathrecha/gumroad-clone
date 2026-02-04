@@ -8,9 +8,9 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
-
+from django.core.mail import send_mail
 from .forms import ProductModelForm
-from .models import Product
+from .models import Product, PurchasedProduct
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 User = get_user_model()
@@ -116,7 +116,11 @@ class CreateCheckoutSessionView(generic.View):
                 customer_id = request.user.stripe_customer_id
             else:
                 customer_email = request.user.email
-
+        product_img_urls = [
+            "https://ded9.com/wp-content/uploads/2021/05/3654e7e5cd4023d6a65bb172fb178be0.jpg"
+        ]
+        if product.cover:
+            product_img_urls.append(product.cover.url)
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer=customer_id,
@@ -129,6 +133,7 @@ class CreateCheckoutSessionView(generic.View):
                             "unit_amount": int(product.price),
                             "product_data": {
                                 "name": product.name,
+                                "images": product_img_urls,
                             },
                         },
                         "quantity": 1,
@@ -166,41 +171,48 @@ def stripe_webhook(request, *args, **kwargs):
         session = event["data"]["object"]
         product_id = session["metadata"].get("product_id")
         stripe_customer_id = session.get("customer")
-        stripe_customer_email = session["customer_details"]["email"]
+        stripe_customer_details = session.get("customer_details", {})
+        stripe_customer_email = stripe_customer_details.get("email")
 
         # 1. Fetch Product Safely
         product = Product.objects.filter(id=product_id).first()
         if not product:
-            print(f"Product ID {product_id} not found.")
             return HttpResponse(status=404)
 
-        # 2. Find User (Direct Import to avoid ImportError)
-        # We import here to solve the circular dependency once and for all
-        from gumroad.users.models import User
-        from gumroad.users.models import UserLibrary
+        # 2. Find User
+        from gumroad.users.models import User, UserLibrary
 
-        # Lookup: Priority is Stripe ID, then Case-Insensitive Email
         user = User.objects.filter(stripe_customer_id=stripe_customer_id).first()
         if not user:
             user = User.objects.filter(email__iexact=stripe_customer_email).first()
 
-        # 3. Fulfillment Logic
+        # 3. Handle PurchasedProduct (Always create this for record-keeping)
+        # Using update_or_create prevents duplicate records on webhook retries
+        PurchasedProduct.objects.get_or_create(
+            email=stripe_customer_email, product=product
+        )
+
+        # 4. Fulfillment Logic
         if user:
-            # Update the Stripe ID if it's missing (Crucial for your Admin check)
-            if user.stripe_customer_id != stripe_customer_id:
+            # Sync Stripe ID if missing
+            if stripe_customer_id and user.stripe_customer_id != stripe_customer_id:
                 user.stripe_customer_id = stripe_customer_id
-                user.save()
+                user.save(update_fields=["stripe_customer_id"])
 
             # Update User Library
             library, created = UserLibrary.objects.get_or_create(user=user)
-
-            # Check if product is already in library to prevent duplicates
             if product not in library.products.all():
                 library.products.add(product)
-                print(f"Product '{product.name}' added to {user.email}'s library.")
-            else:
-                print(f"User {user.email} already owns '{product.name}'.")
+
         else:
-            print(f"Webhook error: No user found with email {stripe_customer_email}")
+            # GUEST FLOW: User doesn't exist yet
+            # Send the email specifically telling them to use stripe_customer_email to sign up
+            send_mail(
+                subject="Create an account to access your content",
+                message=f"Thank you for purchasing {product.name}! Please sign up at our site using this email ({stripe_customer_email}) to access your purchase.",
+                from_email="noreply@yourdomain.com",
+                recipient_list=[stripe_customer_email],
+                fail_silently=False,
+            )
 
     return HttpResponse(status=200)
