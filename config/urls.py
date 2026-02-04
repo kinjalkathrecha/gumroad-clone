@@ -15,12 +15,14 @@ from gumroad.products.views import ProductListView
 from gumroad.products.views import SuccessView
 from gumroad.products.views import UserProductListView
 from gumroad.products.views import stripe_webhook
+from gumroad.users.views import UserProfileView
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
     path("discover/", ProductListView.as_view(), name="discover"),
     path("products/", UserProductListView.as_view(), name="user-products"),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
+    path("profile/", UserProfileView.as_view(), name="profile"),
     path("p/", include("gumroad.products.urls", namespace="products")),
     path(
         "create-checkout-session/<slug>/",

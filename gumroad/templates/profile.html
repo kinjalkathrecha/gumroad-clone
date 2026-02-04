@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="text-gray-600 body-font">
+    <div class="container px-5 py-12 mx-auto">
+      <div class="flex flex-wrap -m-4">
+        {% for product in request.user.userlibrary.products.all %}
+          <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
+            <div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all duration-200 overflow-hidden group">
+              <a href="{{ product.get_absolute_url }}"
+                 class="block relative h-48 overflow-hidden border-b-4 border-black">
+                <img alt="{{ product.name }}"
+                     class="object-cover object-center w-full h-full block group-hover:scale-105 transition-transform duration-500"
+                     src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/420x260{% endif %}" />
+              </a>
+              <div class="p-5">
+                <a href="{{ product.get_absolute_url }}">
+                  <h2 class="text-black title-font text-xl font-black uppercase tracking-tight truncate">{{ product.name }}</h2>
+                  <div class="mt-3 flex justify-between items-center">
+                    <span class="bg-black text-white px-3 py-1 text-sm font-bold">${{ product.price_display }}</span>
+                    <span class="text-xs font-black uppercase text-gray-500 italic">View Details →</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="w-full text-center py-20">
+            <h2 class="text-2xl font-bold text-gray-400 italic">No products available at the moment.</h2>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock content %}
