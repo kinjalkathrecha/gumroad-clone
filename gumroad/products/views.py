@@ -28,9 +28,15 @@ class ProductDetailView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        product = self.get_object()
+        has_access = False
+        if self.request.user.is_authenticated:
+            if product in self.request.user.userlibrary.products.all():
+                has_access = True
         context.update(
             {
                 "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+                "has_access": has_access,
             },
         )
         return context
