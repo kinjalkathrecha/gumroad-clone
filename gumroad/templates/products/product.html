@@ -22,40 +22,39 @@
           <div class="inline-flex items-center bg-green-400/90 rounded-lg px-5 py-3 mb-6 shadow-sm">
             <p class="text-2xl font-black">${{ product.price_display }}</p>
           </div>
-          <form action="{% url 'create-checkout-session' product.slug %}"
-                method="post"
-                class="space-y-5">
-            {% csrf_token %}
-            {% if has_access %}
-              <p class="text-base font-semibold text-gray-600">You already have access to this product</p>
-              <div class="flex flex-col gap-4">
-                {% if product.content_url %}
-                  <a href="{{ product.content_url }}"
-                     target="_blank"
-                     rel="nofollow noreferrer"
-                     class="block w-full text-center bg-[#FF90E8] text-black rounded-lg py-4 font-black text-lg uppercase shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                    View Content
-                  </a>
-                {% endif %}
-                {% if product.content_file %}
-                  <a href="{{ product.content_file }}"
-                     download
-                     class="block w-full text-center bg-[#FF90E8] text-black rounded-lg py-4 font-black text-lg uppercase shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                    Download Content
-                  </a>
-                {% endif %}
-              </div>
-            {% else %}
+          {% if has_access %}
+            <p class="text-base font-semibold text-gray-600 mb-4">You already have access to this product</p>
+            <div class="flex flex-col gap-4">
+              {% if product.content_url %}
+                <a href="{{ product.content_url }}"
+                   target="_blank"
+                   rel="nofollow noreferrer"
+                   class="block w-full text-center bg-[#FF90E8] text-black rounded-lg py-4 font-black text-lg uppercase shadow-md hover:shadow-xl transition-all">
+                  View Content
+                </a>
+              {% endif %}
+              {% if product.content_file %}
+                <a href="{{ product.content_file.url }}"
+                   download
+                   class="block w-full text-center bg-[#FF90E8] text-black rounded-lg py-4 font-black text-lg uppercase shadow-md hover:shadow-xl transition-all">
+                  Download Content
+                </a>
+              {% endif %}
+            </div>
+          {% else %}
+            <form action="{% url 'create-checkout-session' product.slug %}"
+                  method="post">
+              {% csrf_token %}
               <button type="submit"
                       class="w-full bg-[#FF90E8] text-black rounded-lg py-4 font-black text-xl uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
                 Buy Now
               </button>
-            {% endif %}
-          </form>
+            </form>
+          {% endif %}
           {% if request.user == product.user %}
             <div class="mt-6 pt-5 border-t border-dashed border-gray-300">
               <a href="{{ product.get_update_url }}"
-                 class="block w-full text-center bg-yellow-400 rounded-lg py-3 font-bold uppercase shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                 class="block w-full text-center bg-yellow-400 rounded-lg py-3 font-bold uppercase shadow-md hover:shadow-lg transition-all">
                 Edit Product
               </a>
             </div>

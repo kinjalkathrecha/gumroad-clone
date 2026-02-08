@@ -8,14 +8,13 @@ from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
-
 from gumroad.products.views import CreateCheckoutSessionView
 from gumroad.products.views import ProductCreateView
 from gumroad.products.views import ProductListView
 from gumroad.products.views import SuccessView
 from gumroad.products.views import UserProductListView
 from gumroad.products.views import stripe_webhook
-from gumroad.users.views import UserProfileView
+from gumroad.users.views import UserProfileView, StripeAccountLinkView
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -23,6 +22,7 @@ urlpatterns = [
     path("products/", UserProductListView.as_view(), name="user-products"),
     path("products/create/", ProductCreateView.as_view(), name="product-create"),
     path("profile/", UserProfileView.as_view(), name="profile"),
+    path("stripe/auth/", StripeAccountLinkView.as_view(), name="stripe-account-link"),
     path("p/", include("gumroad.products.urls", namespace="products")),
     path(
         "create-checkout-session/<slug>/",

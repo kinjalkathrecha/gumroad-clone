@@ -34,5 +34,18 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True  # type: ignore[index]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "http://media.testserver/"
-# Your stuff...
+
+# DATABASE
 # ------------------------------------------------------------------------------
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+}
+
+# FILTER DEBUG TOOLBAR MIDDLEWARE
+MIDDLEWARE = [m for m in MIDDLEWARE if "debug_toolbar" not in m]  # noqa: F405
+# We need tailwind in INSTALLED_APPS for templates to work, assuming import works now.
+# Exclude debug_toolbar from INSTALLED_APPS just in case.
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in ["debug_toolbar"]]  # noqa: F405

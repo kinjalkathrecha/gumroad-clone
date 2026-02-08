@@ -1,16 +1,15 @@
 import stripe
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
-from django.urls import reverse
-from django.views import generic
-from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
-from .forms import ProductModelForm
+from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views import generic
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse
+from django.http import HttpResponse
 from .models import Product, PurchasedProduct
+from .forms import ProductModelForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 User = get_user_model()
@@ -27,23 +26,20 @@ class ProductDetailView(generic.DetailView):
     context_object_name = "product"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super(ProductDetailView, self).get_context_data(**kwargs)
         product = self.get_object()
         has_access = False
         if self.request.user.is_authenticated:
             if product in self.request.user.userlibrary.products.all():
                 has_access = True
         context.update(
-            {
-                "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
-                "has_access": has_access,
-            },
+            {"STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY, "has_access": has_access}
         )
         return context
 
 
 class UserProductListView(LoginRequiredMixin, generic.ListView):
-    # shows the user created products
+    # shows the users created products
     template_name = "products.html"
 
     def get_queryset(self):
@@ -55,19 +51,14 @@ class ProductCreateView(LoginRequiredMixin, generic.CreateView):
     form_class = ProductModelForm
 
     def get_success_url(self):
-        return reverse(
-            "products:product-detail",
-            kwargs={
-                "slug": self.product.slug,
-            },
-        )
+        return reverse("products:product-detail", kwargs={"slug": self.product.slug})
 
     def form_valid(self, form):
         instance = form.save(commit=False)
         instance.user = self.request.user
         instance.save()
         self.product = instance
-        return super().form_valid(form)
+        return super(ProductCreateView, self).form_valid(form)
 
 
 class ProductUpdateView(LoginRequiredMixin, generic.UpdateView):
@@ -79,10 +70,7 @@ class ProductUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def get_success_url(self):
         return reverse(
-            "products:product-detail",
-            kwargs={
-                "slug": self.get_object().slug,
-            },
+            "products:product-detail", kwargs={"slug": self.get_object().slug}
         )
 
 
@@ -96,123 +84,128 @@ class ProductDeleteView(LoginRequiredMixin, generic.DeleteView):
         return reverse("user-products")
 
 
+class CreateCheckoutSessionView(generic.View):
+    def post(self, request, *args, **kwargs):
+        product = Product.objects.get(slug=self.kwargs["slug"])
+        domain = "https://domain.com"
+        if settings.DEBUG:
+            domain = "http://127.0.0.1:8000"
+        customer = None
+        customer_email = None
+        if request.user.is_authenticated:
+            if request.user.stripe_customer_id:
+                customer = request.user.stripe_customer_id
+            else:
+                customer_email = request.user.email
+        product_image_urls = []
+        if product.cover:
+            if not settings.DEBUG:
+                product_image_urls.append(product.cover.url)
+        session = stripe.checkout.Session.create(
+            customer=customer,
+            customer_email=customer_email,
+            client_reference_id=request.user.id
+            if request.user.is_authenticated
+            else None,  # ADD THIS
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": product.name,
+                            "images": product_image_urls,
+                        },
+                        "unit_amount": product.price,
+                    },
+                    "quantity": 1,
+                }
+            ],
+            # payment_intent_data={
+            #     'application_fee_amount': 100,
+            #     'transfer_data': {
+            #         'destination': product.user.stripe_account_id,
+            #     },
+            # },
+            mode="payment",
+            success_url=domain + reverse("success"),
+            cancel_url=domain + reverse("discover"),
+            metadata={"product_id": product.id},
+        )
+
+        return redirect(session.url, code=303)
+
+
 class SuccessView(generic.TemplateView):
     template_name = "success.html"
 
 
-class CreateCheckoutSessionView(generic.View):
-    def post(self, request, *args, **kwargs):
-        product = get_object_or_404(Product, slug=self.kwargs["slug"])
-
-        success_url = request.build_absolute_uri("/success/")
-        cancel_url = request.build_absolute_uri("/cancel/")
-
-        # Determine if we use an existing ID or just the email
-        customer_id = None
-        customer_email = None
-
-        if request.user.is_authenticated:
-            if request.user.stripe_customer_id:
-                customer_id = request.user.stripe_customer_id
-            else:
-                customer_email = request.user.email
-        product_img_urls = [
-            "https://ded9.com/wp-content/uploads/2021/05/3654e7e5cd4023d6a65bb172fb178be0.jpg"
-        ]
-        if product.cover:
-            product_img_urls.append(product.cover.url)
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                customer=customer_id,
-                customer_email=customer_email,
-                payment_method_types=["card"],
-                line_items=[
-                    {
-                        "price_data": {
-                            "currency": "usd",
-                            "unit_amount": int(product.price),
-                            "product_data": {
-                                "name": product.name,
-                                "images": product_img_urls,
-                            },
-                        },
-                        "quantity": 1,
-                    },
-                ],
-                mode="payment",
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={
-                    "product_id": product.id,
-                },
-            )
-            return redirect(checkout_session.url, code=303)
-
-        except stripe.error.StripeError as e:
-            print(f"Stripe Error: {e}")
-            return redirect("discover")
-
-
 @csrf_exempt
 def stripe_webhook(request, *args, **kwargs):
+    CHECKOUT_SESSION_COMPLETED = "checkout.session.completed"
+    ACCOUNT_UPDATED = "account.updated"
+
     payload = request.body
-    sig_header = request.headers.get("stripe-signature")
+    sig_header = request.headers["stripe-signature"]
 
     try:
         event = stripe.Webhook.construct_event(
-            payload,
-            sig_header,
-            settings.STRIPE_WEBHOOK_SECRET,
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    except (ValueError, stripe.error.SignatureVerificationError):
+
+    except ValueError as e:
+        print(e)
         return HttpResponse(status=400)
 
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        product_id = session["metadata"].get("product_id")
-        stripe_customer_id = session.get("customer")
-        stripe_customer_details = session.get("customer_details", {})
-        stripe_customer_email = stripe_customer_details.get("email")
+    except stripe.error.SignatureVerificationError as e:
+        print(e)
+        return HttpResponse(status=400)
 
-        # 1. Fetch Product Safely
-        product = Product.objects.filter(id=product_id).first()
-        if not product:
-            return HttpResponse(status=404)
+    if event["type"] == CHECKOUT_SESSION_COMPLETED:
+        product_id = event["data"]["object"]["metadata"]["product_id"]
+        product = Product.objects.get(id=product_id)
 
-        # 2. Find User
-        from gumroad.users.models import User, UserLibrary
+        stripe_customer_id = event["data"]["object"]["customer"]
+        client_reference_id = event["data"]["object"].get("client_reference_id")
 
-        user = User.objects.filter(stripe_customer_id=stripe_customer_id).first()
-        if not user:
-            user = User.objects.filter(email__iexact=stripe_customer_email).first()
+        if client_reference_id:
+            try:
+                user = User.objects.get(id=client_reference_id)
+                user.userlibrary.products.add(product)
+                if not user.stripe_customer_id:
+                    user.stripe_customer_id = stripe_customer_id
+                    user.save()
+                return HttpResponse()
+            except User.DoesNotExist:
+                # If ID lookup fails, fall through to fallback logic
+                pass
 
-        # 3. Handle PurchasedProduct (Always create this for record-keeping)
-        # Using update_or_create prevents duplicate records on webhook retries
-        PurchasedProduct.objects.get_or_create(
-            email=stripe_customer_email, product=product
-        )
+        try:
+            user = User.objects.get(stripe_customer_id=stripe_customer_id)
+            user.userlibrary.products.add(product)
+        except User.DoesNotExist:
+            # assign the customer_id to the corresponding user
+            stripe_customer_email = event["data"]["object"]["customer_details"]["email"]
 
-        # 4. Fulfillment Logic
-        if user:
-            # Sync Stripe ID if missing
-            if stripe_customer_id and user.stripe_customer_id != stripe_customer_id:
+            try:
+                user = User.objects.get(email=stripe_customer_email)
                 user.stripe_customer_id = stripe_customer_id
-                user.save(update_fields=["stripe_customer_id"])
+                user.save()
+                user.userlibrary.products.add(product)
+            except User.DoesNotExist:
+                PurchasedProduct.objects.create(
+                    email=stripe_customer_email, product=product
+                )
 
-            # Update User Library
-            library, created = UserLibrary.objects.get_or_create(user=user)
-            if product not in library.products.all():
-                library.products.add(product)
+                # send an email asks them to create an account
+                send_mail(
+                    subject="Create an account to access your content",
+                    message="Please signup to access your latest purchase",
+                    recipient_list=[stripe_customer_email],
+                    from_email="test@test.com",
+                )
 
-        else:
-            # GUEST FLOW: User doesn't exist yet
-            # Send the email specifically telling them to use stripe_customer_email to sign up
-            send_mail(
-                subject="Create an account to access your content",
-                message=f"Thank you for purchasing {product.name}! Please sign up at our site using this email ({stripe_customer_email}) to access your purchase.",
-                from_email="noreply@yourdomain.com",
-                recipient_list=[stripe_customer_email],
-                fail_silently=False,
-            )
+    elif event["type"] == ACCOUNT_UPDATED:
+        print(event)
 
-    return HttpResponse(status=200)
+    return HttpResponse()

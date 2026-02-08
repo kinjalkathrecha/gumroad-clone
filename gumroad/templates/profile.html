@@ -1,35 +1,85 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
-  <section class="text-gray-600 body-font">
-    <div class="container px-5 py-12 mx-auto">
-      <div class="flex flex-wrap -m-4">
-        {% for product in request.user.userlibrary.products.all %}
-          <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
-            <div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all duration-200 overflow-hidden group">
-              <a href="{{ product.get_absolute_url }}"
-                 class="block relative h-48 overflow-hidden border-b-4 border-black">
-                <img alt="{{ product.name }}"
-                     class="object-cover object-center w-full h-full block group-hover:scale-105 transition-transform duration-500"
-                     src="{% if product.cover %}{{ product.cover.url }}{% else %}https://dummyimage.com/420x260{% endif %}" />
-              </a>
-              <div class="p-5">
-                <a href="{{ product.get_absolute_url }}">
-                  <h2 class="text-black title-font text-xl font-black uppercase tracking-tight truncate">{{ product.name }}</h2>
-                  <div class="mt-3 flex justify-between items-center">
-                    <span class="bg-black text-white px-3 py-1 text-sm font-bold">${{ product.price_display }}</span>
-                    <span class="text-xs font-black uppercase text-gray-500 italic">View Details →</span>
-                  </div>
-                </a>
+  <!-- Payment details -->
+  <div class="space-y-6 sm:px-6 lg:px-0 lg:col-span-9">
+    <section aria-labelledby="payment_details_heading">
+      <div>
+        <h2 id="payment_details_heading"
+            class="text-lg leading-6 font-medium text-gray-900">Payment details</h2>
+        <p class="mt-1 text-sm text-gray-500">Connect your Stripe account to get paid</p>
+      </div>
+      {% if details_submitted %}
+        <p class="mt-5">Your account is complete and you will receive payouts</p>
+      {% else %}
+        <div class="mt-5">
+          <a href="{% url 'stripe-account-link' %}"
+             class="bg-black px-6 py-2 text-white font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all inline-block mb-8">
+            connect to stripe
+          </a>
+          <p>Your account is incomplete. Please click on the Stripe Connect button to complete your profile</p>
+        </div>
+      {% endif %}
+    </section>
+    <!-- Billing history -->
+    <section aria-labelledby="billing_history_heading">
+      <div class="bg-white pt-6 shadow sm:rounded-md sm:overflow-hidden">
+        <div class="px-4 sm:px-6">
+          <h2 id="billing_history_heading"
+              class="text-lg leading-6 font-medium text-gray-900">Purchased Products</h2>
+        </div>
+        <div class="mt-6 flex flex-col">
+          <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+              <div class="overflow-hidden border-t border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th scope="col"
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th scope="col"
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th scope="col"
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th scope="col"
+                          class="relative px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span class="sr-only">View content</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product in request.user.userlibrary.products.all %}
+                      <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.description }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ product.price_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <a href="{{ product.get_absolute_url }}"
+                             class="text-green-600 hover:text-green-900">View product</a>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-sm text-gray-500">
+                          You don't have any products in your library yet.
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        {% empty %}
-          <div class="w-full text-center py-20">
-            <h2 class="text-2xl font-bold text-gray-400 italic">No products available at the moment.</h2>
-          </div>
-        {% endfor %}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 {% endblock content %}

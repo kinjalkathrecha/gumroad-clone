@@ -191,3 +191,5 @@ dependencies = [
     "stripe>=14.3.0",
     "whitenoise==6.11.0",
 ]
+
+extend-ignore = ["F405"]

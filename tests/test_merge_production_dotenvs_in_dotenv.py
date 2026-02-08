@@ -32,3 +32,6 @@ def test_merge(
     merge(output_file, files_to_merge)
 
     assert output_file.read_text() == expected_output
+
+
+# noqa: F405

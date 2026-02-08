@@ -4,9 +4,7 @@ from django.urls import reverse
 
 class Product(models.Model):
     user = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        related_name="products",
+        "users.User", on_delete=models.CASCADE, related_name="products"
     )
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -14,8 +12,9 @@ class Product(models.Model):
     slug = models.SlugField()
 
     # content
-    content_url = models.URLField(blank=True)
+    content_url = models.URLField(blank=True, null=True)
     content_file = models.FileField(blank=True, null=True)
+
     active = models.BooleanField(default=False)
     price = models.PositiveIntegerField(default=1)  # cents
 
@@ -23,31 +22,16 @@ class Product(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(
-            "products:product-detail",
-            kwargs={
-                "slug": self.slug,
-            },
-        )
+        return reverse("products:product-detail", kwargs={"slug": self.slug})
 
     def get_update_url(self):
-        return reverse(
-            "products:product-update",
-            kwargs={
-                "slug": self.slug,
-            },
-        )
+        return reverse("products:product-update", kwargs={"slug": self.slug})
 
     def get_delete_url(self):
-        return reverse(
-            "products:product-delete",
-            kwargs={
-                "slug": self.slug,
-            },
-        )
+        return reverse("products:product-delete", kwargs={"slug": self.slug})
 
     def price_display(self):
-        return f"{self.price / 100:.2f}"
+        return "{0:.2f}".format(self.price / 100)
 
 
 class PurchasedProduct(models.Model):
